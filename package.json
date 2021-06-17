@@ -23,6 +23,7 @@
     "@bentley/itwin-client": "^2.13",
     "@bentley/rbac-client": "^2.13",
     "@bentley/telemetry-client": "^2.13",
+    "@bentley/ui-framework": "^2.13"
     "mocha": "^8.2.1"
   },
   "devDependencies": {

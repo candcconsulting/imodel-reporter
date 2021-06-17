@@ -7,6 +7,7 @@ import { IModelHost, DesktopAuthorizationClient, BriefcaseDb, BriefcaseManager, 
 import { DesktopAuthorizationClientConfiguration, IModelVersion } from "@bentley/imodeljs-common";
 import { AccessToken, AuthorizedClientRequestContext } from "@bentley/itwin-client";
 import { DataExporter } from "./DataExporter";
+import { UiFramework } from "@bentley/ui-framework";
 import readline = require('readline');
 
 async function signIn(): Promise<AccessToken|undefined> {
@@ -79,11 +80,13 @@ export async function main(process: NodeJS.Process): Promise<void> {
 
     const exporter = new DataExporter(iModelDb);
     exporter.setfolder(userdata.folder);
-   
-    for (const querykey of Object.keys(userdata.queries)) {
-      const aQuery = userdata.queries[querykey];
-      const fileName = `${aQuery.store !== undefined ? aQuery.store : querykey}.csv`;
-      await exporter.writeQueryResultsToCsv(aQuery.query, fileName, aQuery.options)
+    // handle LinearDraft export
+    const query = 'select distinct be.ecclassid classId from bis.element be join meta.ecclassdef cl on cl.ecinstanceid = be.ecclassid where cl.description like 'Linear%'';
+    const results = UiFramework.getIModelConnection()!.query(query);    
+    for await (const row of results) {
+      const aQuery = "select * from " + row.classId;
+      const fileName = row.classId + 'csv';
+      await exporter.writeQueryResultsToCsv(aQuery, fileName)
     }
 
     iModelDb.close();
